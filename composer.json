@@ -7,6 +7,16 @@
     "php": ">=5.6.0"
   },
 
+  "require-dev": {
+    "phpoffice/phpspreadsheet": "^1.2",
+    "gietos/dadata": "^1.1"
+  },
+
+  "suggest": {
+    "phpoffice/phpspreadsheet": "Required to import CDEK XLS cities database",
+    "gietos/dadata": "Required to search Cdek city by name/lat/lng"
+  },
+
   "autoload": {
     "psr-4": {
       "cronfy\\cdek\\": "src/"
