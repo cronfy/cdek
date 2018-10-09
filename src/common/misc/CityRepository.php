@@ -88,8 +88,54 @@ class CityRepository extends BaseObject
         return $this->_byCityCode[$cityCode] ? $this->getById($this->_byCityCode[$cityCode]) : null;
     }
 
+    /**
+     * @param array $criteria
+     * @return CdekCity[]
+     */
+    public function searchByCriteria($criteria = []) {
+        // Query criteria
+
+        $query = CdekCity::find();
+
+        if ($name = @$criteria['name']) {
+            // е/ё - ищем по всем возможным вариантам
+            $nameVariants = $this->getNameVariants($name);
+            $query->andWhere(['name' => $nameVariants]);
+
+            foreach ($nameVariants as $nameVariant) {
+                // некоторые города имеют приписку к CityName, например
+                // "FullName":"Железногорск, Красноярский край","CityName":"Железногорск, Красноярский край"
+                $query->orWhere(['like', 'name', $nameVariant . ',%', false]);
+                // Иногда они имеют приписку и без запятой - через пробел, например
+                // "FullName":"Атырау (Гурьев)","CityName":"Атырау (Гурьев)"
+                $query->orWhere(['like', 'name', $nameVariant . ' %', false]);
+                // а у некоторых городов вместо запятой точка после названия
+                // "ID":445,"FullName":"Венёв. Веневский р-н, Тульская обл."
+                $query->orWhere(['like', 'name', $nameVariant . '.%', false]);
+            }
+
+        }
+
+        $cities = $query->all();
+
+        // Filter criteria
+
+        if ($countryIso = @$criteria['countryIso']) {
+            $countryCode = @$this->countryIsoToCdekCountryCode()[$countryIso];
+
+            foreach ($cities as $k => $city) {
+                if ($city->data['CountryCode'] != $countryCode) {
+                    unset($cities[$k]);
+                }
+            }
+        }
+
+        return $cities;
+    }
+
     protected $_byNameVariants = [];
-    protected function findByName($name) {
+    /** @deprecated  use searchByCriteria() */
+    public function findByName($name) {
         // е/ё - ищем по всем возможным вариантам
         $nameVariants = $this->getNameVariants($name);
 

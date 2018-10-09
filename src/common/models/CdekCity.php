@@ -73,4 +73,16 @@ class CdekCity extends crud\CdekCity
 
         return $all;
     }
+
+    /**
+     * @return CdekCityDTO
+     */
+    public function getDTO() {
+        $dto = new CdekCityDTO();
+        foreach (get_object_vars($dto) as $key => $value) {
+            $dto->$key = $this->data[$key];
+        }
+        return $dto;
+    }
+
 }
