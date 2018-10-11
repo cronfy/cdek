@@ -2,6 +2,7 @@
 
 namespace cronfy\cdek\common\models;
 
+use cronfy\cdek\BaseModule;
 use paulzi\jsonBehavior\JsonBehavior;
 use Yii;
 
@@ -10,6 +11,13 @@ use Yii;
  */
 class CdekCity extends crud\CdekCity
 {
+    /**
+     * Это ОЧЕНЬ плохо, потому что мы хардкодим имя модуля.
+     * @return BaseModule
+     */
+    public function getModule() {
+        return Yii::$app->getModule('cdek');
+    }
 
     public function behaviors()
     {
@@ -41,9 +49,10 @@ class CdekCity extends crud\CdekCity
      */
     public function getPvzs()
     {
+        $cache = $this->getModule()->getCache();
         $cityCode = $this->city_code;
         $url = "http://gw.edostavka.ru:11443/pvzlist.php?cityid=$cityCode&type=ALL";
-        $xmlstring = Yii::$app->cache->getOrSet("cronfy.cdek.url.$url", function () use ($url) {
+        $xmlstring = $cache->getOrSet("cronfy.cdek.url.$url", function () use ($url) {
             return file_get_contents($url);
         }, 60 * 60 * 24 * 7);
 

@@ -10,6 +10,7 @@ namespace cronfy\cdek;
 
 use cronfy\cdek\common\misc\CityRepository;
 use cronfy\cdek\common\models\CdekCity;
+use Yii;
 use yii\base\Module;
 use yii\helpers\ArrayHelper;
 
@@ -18,6 +19,19 @@ class BaseModule extends Module
 
     public $apiConfig;
     public $availableTariffs = [];
+    public $cache;
+
+    public function getCache() {
+        if (!$this->cache) {
+            $this->cache = Yii::$app->cache;
+        }
+
+        if (!is_object($this->cache) || is_callable($this->cache)) {
+            $this->cache = Yii::createObject($this->cache, [$this]);
+        }
+
+        return $this->cache;
+    }
 
     protected $_cityRepository;
     public function getCityRepository() {
