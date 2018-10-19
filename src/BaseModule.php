@@ -11,6 +11,7 @@ namespace cronfy\cdek;
 use cronfy\cdek\common\misc\CityRepository;
 use cronfy\cdek\common\models\CdekCity;
 use Yii;
+use yii\base\InvalidArgumentException;
 use yii\base\Module;
 use yii\helpers\ArrayHelper;
 
@@ -85,6 +86,47 @@ class BaseModule extends Module
         return $this->_api;
     }
 
+    public function calculate($cargo, $fromCity, $toCity, $params) {
+        if (is_scalar($params)) {
+            return $this->calculateByMode($cargo, $fromCity, $toCity, $params);
+        }
+
+        if ($params['tariff']) {
+            return $this->calculateByTariff($cargo, $fromCity, $toCity, $params['tariff']);
+        }
+
+        throw new InvalidArgumentException("Wrong params");
+    }
+
+    /**
+     * @param $cargo Cargo
+     * @param $fromCity
+     * @param $toCity
+     * @param $tariff
+     * @return mixed
+     */
+    protected function calculateByTariff($cargo, $fromCity, $toCity, $tariff)
+    {
+        $payload = [
+            'dateExecute' => date('Y-m-d'),
+            'senderCityId' => $fromCity,
+            'receiverCityId' => $toCity,
+            'tariffList' => [
+                ['id' => $tariff, 'priority' => 1]
+            ],
+            'goods' => [
+                [
+                    'width' => $cargo->width,
+                    'height' => $cargo->height,
+                    'length' => $cargo->length,
+                    'weight' => $cargo->weight,
+                ]
+            ]
+        ];
+        $result = $this->getApi()->calculate($payload);
+        return $result;
+    }
+
     /**
      * @param $cargo Cargo
      * @param $fromCity
@@ -92,7 +134,7 @@ class BaseModule extends Module
      * @param $mode
      * @return mixed
      */
-    public function calculate($cargo, $fromCity, $toCity, $mode)
+    protected function calculateByMode($cargo, $fromCity, $toCity, $mode)
     {
         $availableTariffs = ArrayHelper::index($this->availableTariffs, 'id');
         $matchingTariffs = Tariffs::getMatching([
