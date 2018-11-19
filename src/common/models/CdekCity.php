@@ -51,7 +51,7 @@ class CdekCity extends crud\CdekCity
     {
         $cache = $this->getModule()->getCache();
         $cityCode = $this->city_code;
-        $url = "http://gw.edostavka.ru:11443/pvzlist.php?cityid=$cityCode&type=ALL";
+        $url = "https://integration.cdek.ru/pvzlist.php?cityid=$cityCode&type=ALL";
         $xmlstring = $cache->getOrSet("cronfy.cdek.url.$url", function () use ($url) {
             return file_get_contents($url);
         }, 60 * 60 * 24 * 7);
