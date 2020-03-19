@@ -44,6 +44,15 @@ class CdekCity extends crud\CdekCity
         return $pvzs[$code];
     }
 
+    public function dropCityPvzCache() {
+        $cityCode = $this->city_code;
+        $url = "https://integration.cdek.ru/pvzlist.php?cityid=$cityCode&type=ALL";
+        $cacheKey = "cronfy.cdek.url.$url";
+
+        $cache = $this->getModule()->getCache();
+        $cache->delete($cacheKey);
+    }
+
     /**
      * @return CdekPvz[]
      */
@@ -52,8 +61,10 @@ class CdekCity extends crud\CdekCity
         $cache = $this->getModule()->getCache();
         $cityCode = $this->city_code;
         $url = "https://integration.cdek.ru/pvzlist.php?cityid=$cityCode&type=ALL";
-        $xmlstring = $cache->getOrSet("cronfy.cdek.url.$url", function () use ($url) {
-            return file_get_contents($url);
+        $cacheKey = "cronfy.cdek.url.$url";
+        $xmlstring = $cache->getOrSet($cacheKey, function () use ($url) {
+            $result = file_get_contents($url);
+            return $result;
         }, 60 * 60 * 24 * 7);
 
         $data = new \SimpleXMLElement($xmlstring);
